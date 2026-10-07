@@ -14,25 +14,16 @@ document.addEventListener('DOMContentLoaded', () => {
   const invitationOverlay = document.getElementById('invitationOverlay');
   
   // Controls & Modals
-  const doorSelectBtn = document.getElementById('doorSelectBtn');
-  const editDetailsBtn = document.getElementById('editDetailsBtn');
   const audioToggleBtn = document.getElementById('audioToggleBtn');
   const audioIconOn = document.getElementById('audioIconOn');
   const audioIconOff = document.getElementById('audioIconOff');
   const replayBtn = document.getElementById('replayBtn');
   
   // Modals
-  const doorModal = document.getElementById('doorModal');
-  const closeDoorModal = document.getElementById('closeDoorModal');
-  const editorModal = document.getElementById('editorModal');
-  const closeEditorModal = document.getElementById('closeEditorModal');
   const mapModal = document.getElementById('mapModal');
   const openMapBtn = document.getElementById('openMapBtn');
   const closeMapModal = document.getElementById('closeMapModal');
   const addToCalendarBtn = document.getElementById('addToCalendarBtn');
-  
-  // Forms & Inputs
-  const editorForm = document.getElementById('editorForm');
 
   // Application State
   let currentDoorId = '1';
@@ -394,12 +385,6 @@ document.addEventListener('DOMContentLoaded', () => {
     isPlaying = true;
     initAudioContext();
 
-    // Trigger YouTube background music if URL input is filled
-    const ytUrlInput = document.getElementById('inputYoutubeUrl');
-    if (ytUrlInput && ytUrlInput.value) {
-      playYouTubeBackgroundMusic(ytUrlInput.value, true);
-    }
-
     // 1. Hide tap callout overlay
     tapOverlay.classList.add('fade-out');
     
@@ -472,80 +457,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 400);
   }
 
-  // --- Door Selector Logic ---
-  function switchDoorStyle(doorId) {
-    if (currentDoorId === doorId) return;
-    
-    currentDoorId = doorId;
-    resetDoorState();
-
-    // Update Poster & Video source (AVIF primary, WebP fallback)
-    const posterPath = `/assets/doors/${doorId}.avif`;
-    const videoPath = `/assets/doors/${doorId}.mp4`;
-
-    posterImg.onerror = () => {
-      if (!posterImg.src.endsWith('.webp')) {
-        posterImg.src = `/assets/doors/${doorId}.webp`;
-      }
-    };
-    posterImg.src = posterPath;
-    videoSource.src = videoPath;
-    video.load();
-
-    // Update active highlight in modal
-    document.querySelectorAll('.door-option-card').forEach(card => {
-      card.classList.toggle('active', card.dataset.door === doorId);
-    });
-
-    doorModal.classList.add('hidden');
-  }
-
   // Event Listener for Tap Overlay
   tapOverlay.addEventListener('click', openDoorInvitation);
   replayBtn.addEventListener('click', resetDoorState);
-
-  // --- Door Modal Controls ---
-  doorSelectBtn.addEventListener('click', () => doorModal.classList.remove('hidden'));
-  closeDoorModal.addEventListener('click', () => doorModal.classList.add('hidden'));
-  
-  document.querySelectorAll('.door-option-card').forEach(card => {
-    card.addEventListener('click', () => {
-      switchDoorStyle(card.dataset.door);
-    });
-  });
-
-  // --- Details Editor Controls ---
-  editDetailsBtn.addEventListener('click', () => editorModal.classList.remove('hidden'));
-  closeEditorModal.addEventListener('click', () => editorModal.classList.add('hidden'));
-
-  editorForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    
-    document.getElementById('displayGroom').innerText = document.getElementById('inputGroom').value;
-    document.getElementById('displayBride').innerText = document.getElementById('inputBride').value;
-    document.getElementById('displayBismillah').innerText = document.getElementById('inputBismillah').value;
-    document.getElementById('displayGreeting').innerText = document.getElementById('inputGreeting').value;
-    document.getElementById('displayDateNum').innerText = document.getElementById('inputDateNum').value;
-    document.getElementById('displayMonth').innerText = document.getElementById('inputMonth').value;
-    document.getElementById('displayYear').innerText = document.getElementById('inputYear').value;
-    document.getElementById('displayDay').innerText = document.getElementById('inputDay').value;
-    document.getElementById('displayTime').innerText = document.getElementById('inputTime').value;
-    document.getElementById('displayVenue').innerText = document.getElementById('inputVenue').value;
-    document.getElementById('displayLocation').innerText = document.getElementById('inputLocation').value;
-    document.getElementById('displayDressCode').innerText = document.getElementById('inputDressCode').value;
-
-    // Update Map Modal text as well
-    document.getElementById('mapVenueTitle').innerText = document.getElementById('inputVenue').value;
-    document.getElementById('mapVenueAddress').innerText = document.getElementById('inputLocation').value;
-
-    // Load YouTube Background Music if URL provided
-    const ytUrlInput = document.getElementById('inputYoutubeUrl');
-    if (ytUrlInput && ytUrlInput.value) {
-      playYouTubeBackgroundMusic(ytUrlInput.value, true);
-    }
-
-    editorModal.classList.add('hidden');
-  });
 
   // --- YouTube Background Music Player Engine ---
   let currentYoutubeVideoId = '';
@@ -615,7 +529,7 @@ document.addEventListener('DOMContentLoaded', () => {
   closeMapModal.addEventListener('click', () => mapModal.classList.add('hidden'));
 
   // Close modals when clicking backdrop
-  [doorModal, editorModal, mapModal].forEach(modal => {
+  [mapModal].forEach(modal => {
     modal.addEventListener('click', (e) => {
       if (e.target === modal) {
         modal.classList.add('hidden');
@@ -653,9 +567,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Prefetch secondary doors & videos in background during idle time
+  // Prefetch door assets in background during idle time
   function prefetchSecondaryAssets() {
-    const doorIds = ['1', '2', '3', '4', '6'];
+    const doorIds = ['1'];
     const prefetch = () => {
       doorIds.forEach(id => {
         // Prefetch AVIF/WebP image
@@ -674,29 +588,6 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
       setTimeout(prefetch, 2000);
     }
-  }
-
-  // --- Constant Floating Order Bar Minimization / Expansion Logic ---
-  const floatingOrderBar = document.getElementById('floatingOrderBar');
-  const floatingWidgetClose = document.getElementById('floatingWidgetClose');
-  const floatingWidgetTrigger = document.getElementById('floatingWidgetTrigger');
-
-  if (floatingOrderBar && floatingWidgetClose && floatingWidgetTrigger) {
-    floatingWidgetClose.addEventListener('click', (e) => {
-      e.stopPropagation();
-      floatingOrderBar.classList.add('collapsed');
-      setTimeout(() => {
-        floatingOrderBar.classList.add('hidden');
-        floatingWidgetTrigger.classList.remove('hidden');
-      }, 300);
-    });
-
-    floatingWidgetTrigger.addEventListener('click', () => {
-      floatingWidgetTrigger.classList.add('hidden');
-      floatingOrderBar.classList.remove('hidden');
-      void floatingOrderBar.offsetWidth; // Force reflow
-      floatingOrderBar.classList.remove('collapsed');
-    });
   }
 
   prefetchSecondaryAssets();
