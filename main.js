@@ -103,6 +103,11 @@ document.addEventListener('DOMContentLoaded', () => {
     hasOpened = true;
     isPlaying = false;
 
+    // Floating sky lanterns join the reveal (the opening clip is 6s, so the
+    // timeupdate-only trigger below can be skipped when the video ends first)
+    const lanternsContainer = document.getElementById('lanternsContainer');
+    if (lanternsContainer) lanternsContainer.classList.add('revealed');
+
     // Reveal invitation text overlay smoothly over static final door frame
     invitationOverlay.classList.remove('hidden');
     void invitationOverlay.offsetWidth;
